@@ -63,11 +63,13 @@ class Grid {
 	}
 
 }
+
 interface Human {
 	String getType();
 	String getName();
 	char getSymbol();
 }
+
 class Player implements Human{
 	private String Name, Type;
 	private char Symbol;
@@ -82,6 +84,84 @@ class Player implements Human{
 	public String getName(){ return this.Name; }
 	public char getSymbol(){ return this.Symbol; }
 }
+
+
+interface checkingMethod{
+	boolean check_win(Grid grid,char symbol,Rules rules);
+}
+
+
+class State implements checkingMethod{
+	static int finished;
+	//0 is for undecided
+	// 1 is for Win
+	// 2 is for draw
+	{
+		finished=0;
+	}
+
+	public void check_Status(Grid grid,Player player,Rules rules)
+	{
+		char temp_symbol_of_current_player = player.getSymbol();
+		if(check_win(grid,temp_symbol_of_current_player,rules))
+		{
+			this.finished = 1;
+		}
+		else
+		{
+			int flag = 0;
+			for(int i=0;i<grid.Rows;i++)
+				for(int j=0;j<grid.Column;j++)
+					if(grid.Box[i][j] == ' ')
+						flag = 1;
+
+			// flag is 0 means there is no left spaces
+			if(flag == 0)
+				this.finished = 2;
+			else
+				this.finished = 0;
+		}
+	}
+	public boolean check_win(Grid grid,char symbol,Rules rules)
+	{
+		int count =rules.Consecutive_Cells_To_Win;
+		int flag = 0;
+		// System.out.println("working\n");
+		for(int i=0;i<grid.Rows;i++)
+		{
+			for(int j=0;j<grid.Column;j++)
+			{
+				for(int direction_x=-1;direction_x<=1;direction_x++)
+				{
+					for(int direction_y=-1;direction_y<=1;direction_y++)
+					{
+						if(direction_x == 0 && direction_y == 0)
+							continue;
+						// System.out.println("working\n");
+						boolean tmp_flag = true;
+						int temp_count=0;
+						for(int k=0;k<count && (j+direction_y*k >= 0 && j+direction_y*k <grid.Column ) && (i+direction_x*k >= 0 && i+direction_x*k <grid.Rows );k++,temp_count++)
+						{
+
+							if(grid.Box[i+direction_x*k][j+direction_y*k] != symbol)
+							{
+								tmp_flag = false;
+							}
+							if(tmp_flag == false)
+								break;
+						}
+						if(tmp_flag == true && temp_count == count){
+							flag=1;
+							return tmp_flag;	
+						}
+					}	
+				}
+			}
+		}
+		return false;
+	}
+}
+
 
 class project{
 
@@ -136,6 +216,7 @@ class project{
         {
         	deque.addFirst(players[i]);
         }
+        State state = new State();
     }
 }
 
