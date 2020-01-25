@@ -212,11 +212,71 @@ class project{
 
         //Order of Players
         Deque<Player> deque = new ArrayDeque<Player>();
-        for(int i=1;i<no_of_players;i++)
+        for(int i=0;i<no_of_players;i++)
         {
         	deque.addFirst(players[i]);
         }
         State state = new State();
+       	System.out.println(deque.size());
+        while( state.finished == 0 )
+       	{
+       		System.out.println();
+       		Player currPlayer = deque.peekFirst();
+       		deque.removeFirst();
+       		grid.display();
+
+       		System.out.println(currPlayer.getName() + currPlayer.getType());
+       		//wanna confirm ??? 
+       		char confirm = 'N';
+       		
+       		if(currPlayer.getType().equals("Machine"))
+       		{
+       			confirm = 'Y';
+       			// grid = optimal_move(grid,currPlayer.getSymbol());
+       		}
+       		
+       		while(confirm != 'Y')
+       		{
+       			System.out.println("Type Row no. and Col no.");
+	       		int choice_row,choice_column;
+	       		choice_row = scn.nextInt();
+	       		choice_column = scn.nextInt();
+
+	       		while(grid.isAvailable(choice_row-1,choice_column-1) == false)
+	       		{
+	       			//Cant Move
+	       			System.out.println("Can't Move");
+		      		choice_row = scn.nextInt();
+		       		choice_column = scn.nextInt();
+
+	       		}
+
+	       		grid.makeMove(choice_row-1,choice_column-1,currPlayer.getSymbol());
+
+	       		//
+	       		grid.display();
+	       		
+	       		System.out.println("wanna Confirm: Press Y or N");
+	       		confirm = scn.next().charAt(0);
+	       		if(confirm == 'Y'){
+	       			System.out.println("Changes Made");
+	       			break;
+	       		}
+				grid.makeMove(choice_row-1,choice_column-1,' ');
+			}
+			
+			// move done 
+			deque.addLast(currPlayer);
+			state.check_Status(grid,currPlayer,rules);
+       	}
+       	if(state.finished == 2)
+       	{
+       		System.out.println("Draw");
+       	}
+       	else
+       	{
+       		System.out.println("The Winner is " + deque.peekLast().getName() + " " + deque.peekLast().getType());
+       	}
     }
 }
 
