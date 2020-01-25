@@ -22,6 +22,48 @@ class Rules{
 	}
 }
 
+
+class Grid {
+	char[][] Box;
+	int Rows, Column;
+	Grid(int rows, int column)
+	{
+		this.Rows = rows;
+		this.Column = column;
+		Box = new char [rows][column];
+		for(int i=0;i<rows;i++)
+			for(int j=0;j<column;j++)
+				Box[i][j] = ' ';
+	}
+
+	public void display()
+	{
+		for(int i=0;i<Rows;i++){
+			for(int j=0;j<Column;j++){
+				System.out.print(Box[i][j]);
+				if(j != (Column-1))
+					System.out.print('|');
+			}
+			System.out.println();
+			if(i != Rows-1)
+				System.out.println("------");
+		}
+		System.out.println();
+	}
+
+	public boolean isAvailable(int x,int y){
+		if(Box[x][y] == ' ')
+			return true;
+		else
+			return false;
+	}
+
+	public void makeMove(int x,int y,char symbol){
+		Box[x][y] = symbol;
+	}
+
+}
+
 class project{
 
     public static void main(String[] args){
@@ -40,7 +82,11 @@ class project{
         
         Rules rules = new Rules(temp_count,temp_x,temp_y,temp_z);
 
-
+        System.out.println("Define Your Size of grid\nRows Column");
+        temp_x = scn.nextInt();
+        temp_y = scn.nextInt();
+        
+        Grid grid = new Grid(temp_x,temp_y);
     }
 }
 
