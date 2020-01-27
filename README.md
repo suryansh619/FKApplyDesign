@@ -12,7 +12,7 @@ Future Scope
 	* Can support multiple Players 
 
 Features
-	* No. of Players can be more than 2
+	* No. of Players can be more than 2 and the game can also be played in Teams
 	* Size of grid and Rule of game can be modified
 	* Order of Players can be modified
 	* An option for move Confirmation.
