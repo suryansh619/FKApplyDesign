@@ -62,6 +62,22 @@ class Grid {
 		Box[x][y] = symbol;
 	}
 
+	public int getRow(){
+		return this.Rows;
+	}
+
+	public int getColumn(){
+		return this.Column;
+	}
+
+	public char getBoxChar(int i,int j){
+		return this.Box[i][j];
+	}
+
+	public void setBoxChar(int i,int j,char x)
+	{
+		this.Box[i][j] = x;
+	}
 }
 
 interface Human {
@@ -165,14 +181,33 @@ class State implements checkingMethod{
 
 class project{
 
+	public static Grid optimal_move(Grid temp,char x)
+	{
+		int flag=1;
+		for(int i=0;i<temp.getRow();i++)
+		{
+			for(int j=0;j<temp.getColumn();j++)
+			{
+				if(temp.getBoxChar(i,j) == ' ')
+				{
+					temp.setBoxChar(i,j,x);
+					flag = 1;
+					break;
+				}
+			}
+			if(flag == 1)break;
+		}
+		return temp;
+	}
     public static void main(String[] args){
 
     	Scanner scn = new Scanner(System.in);
         System.out.println("Hello World, Lets Start the Game");
-
+        System.out.println();
 
         // print rules.....
-        System.out.println("Define Your Rules\n Count Of continous squares to win + Row win (1 or 0) + col win (1 or 0) + diagonal win(1 or 0)");
+        System.out.println("Define Your Rules\n Count Of continous squares to win  +  Row win (1 or 0)  + col win (1 or 0)  + diagonal win(1 or 0)");
+        System.out.println("Eg. 3 1 1 1");
         int temp_count,temp_x,temp_y,temp_z;
         temp_count = scn.nextInt();
         temp_x = scn.nextInt();
@@ -182,6 +217,7 @@ class project{
         Rules rules = new Rules(temp_count,temp_x,temp_y,temp_z);
 
         System.out.println("Define Your Size of grid\nRows Column");
+        System.out.println("Eg. 3 3");
         temp_x = scn.nextInt();
         temp_y = scn.nextInt();
         
@@ -191,6 +227,8 @@ class project{
         int no_of_players;
         // no of players
         System.out.println("How Many Players are there ?");
+        System.out.println("Eg. 1");
+        System.out.println("Eg. Suryansh Human X");
         no_of_players = scn.nextInt();
 
         Player[] players = new Player[no_of_players];
@@ -232,12 +270,13 @@ class project{
        		if(currPlayer.getType().equals("Machine"))
        		{
        			confirm = 'Y';
-       			// grid = optimal_move(grid,currPlayer.getSymbol());
+       			grid = optimal_move(grid,currPlayer.getSymbol());
        		}
        		
        		while(confirm != 'Y')
        		{
-       			System.out.println("Type Row no. and Col no.");
+       			System.out.println("Type Row no. and Col no. Eg. (2 2)");
+
 	       		int choice_row,choice_column;
 	       		choice_row = scn.nextInt();
 	       		choice_column = scn.nextInt();
