@@ -25,8 +25,9 @@ class Rules{
 
 class Grid {
 	char[][] Box;
-	int Rows, Column;
-	Grid(int rows, int column)
+	int Rows, Column,no_of_symbols_used;
+	char[] Symbols_used;
+	Grid(int rows, int column,char[] symbols)
 	{
 		this.Rows = rows;
 		this.Column = column;
@@ -34,6 +35,7 @@ class Grid {
 		for(int i=0;i<rows;i++)
 			for(int j=0;j<column;j++)
 				Box[i][j] = ' ';
+		Symbols_used = symbols;
 	}
 
 	public void display()
@@ -46,7 +48,11 @@ class Grid {
 			}
 			System.out.println();
 			if(i != Rows-1)
-				System.out.println("------");
+			{
+				for(int k=0;k<Rows*2;k++)
+					System.out.print('-');
+				System.out.println();
+			}
 		}
 		System.out.println();
 	}
@@ -79,7 +85,31 @@ class Grid {
 		this.Box[i][j] = x;
 	}
 }
-
+class Blocked_state{
+	int[][] block_cells;
+	Blocked_state(int row,int col){
+		block_cells = new int[row][col];
+		for(int i=0;i<row;i++)
+			for(int j=0;j<col;j++)
+				block_cells[i][j] = 0;
+	}
+	public void block_one_cell(int x,int y){
+		block_cells[x][y] = 1;
+	}
+	public void block_one_grid(int x,int y){
+		int a = x/3 * 3 , b = y/3 * 3;
+		for(int i=0;i<3;i++)
+		{
+			for(int j=0;j<3;j++)
+			{
+				block_cells[i+a][j+b] = 1;
+			}
+		}
+	}
+	public int status(int x,int y){
+		return block_cells[x][y];
+	}
+}
 interface Human {
 	String getType();
 	String getName();
@@ -103,7 +133,7 @@ class Player implements Human{
 
 
 interface checkingMethod{
-	boolean check_win(Grid grid,char symbol,Rules rules);
+	boolean check_win(Grid grid,char symbol,Rules rules,Blocked_state blo);
 }
 
 
@@ -116,10 +146,10 @@ class State implements checkingMethod{
 		finished=0;
 	}
 
-	public void check_Status(Grid grid,Player player,Rules rules)
+	public void check_Status(Grid grid,Player player,Rules rules,Blocked_state blo)
 	{
 		char temp_symbol_of_current_player = player.getSymbol();
-		if(check_win(grid,temp_symbol_of_current_player,rules))
+		if(check_win(grid,temp_symbol_of_current_player,rules,blo))
 		{
 			this.finished = 1;
 		}
@@ -128,7 +158,7 @@ class State implements checkingMethod{
 			int flag = 0;
 			for(int i=0;i<grid.Rows;i++)
 				for(int j=0;j<grid.Column;j++)
-					if(grid.Box[i][j] == ' ')
+					if(blo.status(i,j) == 0)
 						flag = 1;
 
 			// flag is 0 means there is no left spaces
@@ -138,65 +168,108 @@ class State implements checkingMethod{
 				this.finished = 0;
 		}
 	}
-	public boolean check_win(Grid grid,char symbol,Rules rules)
+	public boolean check_win(Grid grid,char symbol,Rules rules,Blocked_state blo)
 	{
-		int count =rules.Consecutive_Cells_To_Win;
-		int flag = 0;
-		// System.out.println("working\n");
-		for(int i=0;i<grid.Rows;i++)
-		{
-			for(int j=0;j<grid.Column;j++)
-			{
-				for(int direction_x=-1;direction_x<=1;direction_x++)
-				{
-					for(int direction_y=-1;direction_y<=1;direction_y++)
-					{
-						if(direction_x == 0 && direction_y == 0)
-							continue;
-						// System.out.println("working\n");
-						boolean tmp_flag = true;
-						int temp_count=0;
-						for(int k=0;k<count && (j+direction_y*k >= 0 && j+direction_y*k <grid.Column ) && (i+direction_x*k >= 0 && i+direction_x*k <grid.Rows );k++,temp_count++)
-						{
 
-							if(grid.Box[i+direction_x*k][j+direction_y*k] != symbol)
+
+		int curr_dimension = 3;
+		char[][] last_dimension_status = grid.Box;
+		
+		while(curr_dimension <= grid.getRow())
+		{
+			int temp_row = grid.getRow()/curr_dimension,temp_column=grid.getColumn()/curr_dimension;
+			char[][] curr_Status = new char[temp_row][temp_column];
+			for(int i=0;i<temp_row;i++)
+			{
+				for(int j=0;j<temp_column;j++)
+				{
+					int count =rules.Consecutive_Cells_To_Win;
+					int flag = 0;
+					for(int sym_ind = 0;sym_ind<grid.Symbols_used.length&& flag!=1;sym_ind++)
+					{
+						char Curr_symbol = grid.Symbols_used[sym_ind];
+						
+
+						int lx = i*3 + 3;
+						int ly = j*3 + 3;
+						for(int ii=0;ii<3&& flag!=1;ii++)
+						{
+							for(int jj=0;jj<3 && flag!=1;jj++)
 							{
-								tmp_flag = false;
+								int iii = i*3 + ii;
+								int jjj = j*3 + jj;
+								for(int direction_x=-1;direction_x<=1&& flag!=1;direction_x++)
+								{
+									for(int direction_y=-1;direction_y<=1&& flag!=1;direction_y++)
+									{
+										
+										if(direction_x == 0 && direction_y == 0)
+											continue;
+
+										boolean tmp_flag = true;
+										int temp_count=0;
+										for(int k=0;k<count && (jjj+direction_y*k >= 0 && (jjj+direction_y*k) < lx ) && (iii+direction_x*k >= 0 && (iii+direction_x*k) <ly );k++,temp_count++)
+										{
+
+											if(last_dimension_status[iii+direction_x*k][jjj+direction_y*k] != Curr_symbol)
+											{
+												tmp_flag = false;
+											}
+											if(tmp_flag == false)
+												break;
+										}
+										if(tmp_flag == true && temp_count == count){
+											flag=1;
+											break;
+										}
+									}	
+								}
 							}
-							if(tmp_flag == false)
-								break;
 						}
-						if(tmp_flag == true && temp_count == count){
-							flag=1;
-							return tmp_flag;	
+
+						if(flag == 1)
+						{
+							curr_Status[i][j] = Curr_symbol;
+							blo.block_one_grid(curr_dimension*i,curr_dimension*j);
+						
+							break;
 						}
-					}	
+					}
+					if(flag == 0){
+						curr_Status[i][j] = ' ';
+					}
+					
 				}
+				
 			}
+			
+
+			last_dimension_status = curr_Status;
+			curr_dimension = curr_dimension * 3;
 		}
-		return false;
+		if(last_dimension_status[0][0] == ' ')
+			return false;
+		else
+			return true;
+
 	}
 }
 
 
 class project{
 
-	public static Grid optimal_move(Grid temp,char x)
+	public static Grid optimal_move(Grid temp,char x,Blocked_state blo)
 	{
-		int flag=1;
-		for(int i=0;i<temp.getRow();i++)
+		int xx = new Random().nextInt(temp.getRow());
+		int yy = new Random().nextInt(temp.getColumn());
+		while( blo.status(xx,yy) == 1)
 		{
-			for(int j=0;j<temp.getColumn();j++)
-			{
-				if(temp.getBoxChar(i,j) == ' ')
-				{
-					temp.setBoxChar(i,j,x);
-					flag = 1;
-					break;
-				}
-			}
-			if(flag == 1)break;
+			xx = new Random().nextInt(temp.getRow());
+			yy = new Random().nextInt(temp.getColumn());
+			
 		}
+		temp.setBoxChar(xx,yy,x);
+		blo.block_one_cell(xx,yy);
 		return temp;
 	}
     public static void main(String[] args){
@@ -221,7 +294,7 @@ class project{
         temp_x = scn.nextInt();
         temp_y = scn.nextInt();
         
-        Grid grid = new Grid(temp_x,temp_y);
+        Blocked_state blo = new Blocked_state(temp_x,temp_y);
 
 
         int no_of_players;
@@ -232,7 +305,7 @@ class project{
         no_of_players = scn.nextInt();
 
         Player[] players = new Player[no_of_players];
-
+        char[] Symbols_selected = new char[no_of_players];
         //name + type + symbol
         for(int i=0;i<=no_of_players;i++)
         {
@@ -243,10 +316,12 @@ class project{
         	String[] arr = temp_str.split(" ",3);
         	
         	players[i-1] = new Player(arr[0],arr[1],arr[2].charAt(0));
+        	Symbols_selected[i-1] = arr[2].charAt(0);
 
         }
         
-        
+        Grid grid = new Grid(temp_x,temp_y,Symbols_selected);
+		        
 
         //Order of Players
         Deque<Player> deque = new ArrayDeque<Player>();
@@ -263,14 +338,14 @@ class project{
        		deque.removeFirst();
        		grid.display();
 
-       		System.out.println(currPlayer.getName() + currPlayer.getType());
+       		System.out.println(currPlayer.getName()+ " " + currPlayer.getType());
        		//wanna confirm ??? 
        		char confirm = 'N';
        		
        		if(currPlayer.getType().equals("Machine"))
        		{
        			confirm = 'Y';
-       			grid = optimal_move(grid,currPlayer.getSymbol());
+       			grid = optimal_move(grid,currPlayer.getSymbol(),blo);
        		}
        		
        		while(confirm != 'Y')
@@ -281,7 +356,7 @@ class project{
 	       		choice_row = scn.nextInt();
 	       		choice_column = scn.nextInt();
 
-	       		while(grid.isAvailable(choice_row-1,choice_column-1) == false)
+	       		while(blo.status(choice_row-1,choice_column-1) == 1)
 	       		{
 	       			//Cant Move
 	       			System.out.println("Can't Move");
@@ -292,7 +367,7 @@ class project{
 
 	       		grid.makeMove(choice_row-1,choice_column-1,currPlayer.getSymbol());
 
-	       		//
+	       		
 	       		grid.display();
 	       		
 	       		System.out.println("wanna Confirm: Press Y or N");
@@ -306,7 +381,7 @@ class project{
 			
 			// move done 
 			deque.addLast(currPlayer);
-			state.check_Status(grid,currPlayer,rules);
+			state.check_Status(grid,currPlayer,rules,blo);
        	}
        	if(state.finished == 2)
        	{
@@ -314,7 +389,7 @@ class project{
        	}
        	else
        	{
-       		System.out.println("The Winner is " + deque.peekLast().getName() + " " + deque.peekLast().getType());
+       		System.out.println("The Winner is " + deque.peekLast().getName() + " " + deque.peekLast().getType() + " " + deque.peekLast().getSymbol());
        	}
     }
 }
