@@ -630,6 +630,7 @@ public class project{
        		Hex hex = new Hex(MAX_SIZE,MAX_SIZE,Symbols_selected,temp_x);
 
 			Blocked_state blo = new Blocked_state(hex,hex.getRow(),hex.getColumn(),temp_x);
+			rules = new Rules(temp_x,1,1,1);
        		Start_Game(hex,players,rules,blo);
        	}
         else
